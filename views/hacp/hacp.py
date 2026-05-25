@@ -1,6 +1,5 @@
 import streamlit as st
 
-# Importamos directamente desde el módulo __init__ que creamos en views/hacmc
 from .informe_general import mostrar_informe_general
 from .entidades import mostrar_entidades
 from .unidades_funcionales import mostrar_unidades_funcionales

@@ -89,7 +89,16 @@ def mostrar_entidades():
     # 2. CONEXIÓN Y CARGA DE DATOS
     # ==========================================
     try:
-        conn = st.connection("putumayo", type="sql")
+        conn = st.connection(
+            "putumayo", 
+            type="sql",
+            connect_args={
+                "sslmode": "verify-ca",
+                "sslrootcert": "C:/Users/JOHN/Documents/Proyecto/.streamlit/ca_putumayo.crt",
+                "sslcert": "C:/Users/JOHN/Documents/Proyecto/.streamlit/lector_putumayo.crt",
+                "sslkey": "C:/Users/JOHN/Documents/Proyecto/.streamlit/lector_putumayo.key"
+            }
+        )
     except Exception as e:
         st.error(f"Error crítico al conectar con la base de datos: {e}")
         return

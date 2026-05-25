@@ -11,6 +11,14 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     pdf = FPDF()
     pdf.add_page()
     
+    # --- LOGO EN EL ENCABEZADO ---
+    ruta_logo = "assets/images/logo_hacp_putumayo.png"
+    if os.path.exists(ruta_logo):
+        pdf.image(ruta_logo, x=10, y=8, w=60)
+    
+    # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
+    pdf.set_y(23)
+    
     # --- COLORES BASE ---
     COLOR_TITULO = (44, 62, 80)      
     COLOR_VERDE = (39, 174, 96)      
@@ -23,7 +31,7 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     # --- 1. ENCABEZADO ---
     pdf.set_font("Arial", "B", 16)
     pdf.set_text_color(*COLOR_TITULO)
-    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
+    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL PUTUMAYO", ln=True, align="C")
     pdf.cell(0, 10, "INFORME GENERAL - CONSUMO DIARIO", ln=True, align="C")
     
     pdf.set_font("Arial", "", 11)
@@ -141,16 +149,25 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
         
     return pdf.output(dest="S").encode("latin-1")
 
+
 def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_general, total_entidades, entidad_top, valor_top, participacion_top):
     pdf = FPDF()
     pdf.add_page()
+    
+    # --- LOGO EN EL ENCABEZADO ---
+    ruta_logo = "assets/images/logo_hacp_putumayo.png"
+    if os.path.exists(ruta_logo):
+        pdf.image(ruta_logo, x=10, y=8, w=60)
+        
+    # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
+    pdf.set_y(23)
     
     # 1. Calculo de la fecha de cohorte
     fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
 
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
-    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
+    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL PUTUMAYO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR ENTIDADES", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
     
@@ -199,16 +216,25 @@ def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_genera
     # Retorno limpio de bytes 
     return pdf.output(dest="S").encode("latin-1")
 
+
 def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_general, total_cantidad, uf_top, valor_top, participacion_top):
     pdf = FPDF()
     pdf.add_page()
+
+    # --- LOGO EN EL ENCABEZADO ---
+    ruta_logo = "assets/images/logo_hacp_putumayo.png"
+    if os.path.exists(ruta_logo):
+        pdf.image(ruta_logo, x=10, y=8, w=60)
+        
+    # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
+    pdf.set_y(23)
 
     # 1. Calculo de la fecha de cohorte
     fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
-    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
+    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL PUTUMAYO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR UNIDADES FUNCIONALES", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
     
@@ -262,16 +288,25 @@ def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_gener
     # Retorno limpio de bytes
     return pdf.output(dest="S").encode("latin-1")    
 
+
 def generar_pdf_mercadeo(df_dashboard, etiqueta_periodo, total_general, total_categorias, categoria_top, valor_top, participacion_top):
     pdf = FPDF()
     pdf.add_page()
+
+    # --- LOGO EN EL ENCABEZADO ---
+    ruta_logo = "assets/images/logo_hacp_putumayo.png"
+    if os.path.exists(ruta_logo):
+        pdf.image(ruta_logo, x=10, y=8, w=60)
+        
+    # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
+    pdf.set_y(23)
 
     # 1. Calculo de la fecha de cohorte
     fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
-    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
+    pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL PUTUMAYO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR LÍNEA DE MERCADEO", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
     pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
@@ -320,6 +355,7 @@ def generar_pdf_mercadeo(df_dashboard, etiqueta_periodo, total_general, total_ca
         pdf.cell(40, 6, promedio_d, border=1, ln=True, align="R")
         
     return pdf.output(dest="S").encode("latin-1")
+
 
 def formato_cop(numero):
     if pd.isna(numero):

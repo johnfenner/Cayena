@@ -1,4 +1,4 @@
-# views/hacmc/__init__.py
+# views/hacp/__init__.py
 
 from .informe_general import mostrar_informe_general
 from .entidades import mostrar_entidades, mostrar_entidades_mejorado
