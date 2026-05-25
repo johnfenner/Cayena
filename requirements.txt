@@ -1,4 +1,7 @@
-streamlit>=1.32.0
+streamlit
 pandas
-sqlalchemy
+plotly
+fpdf2
+kaleido
+SQLAlchemy
 psycopg2-binary
