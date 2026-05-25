@@ -2,6 +2,7 @@ import pandas as pd
 from fpdf import FPDF
 import os
 import tempfile
+from datetime import date, timedelta
 
 def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cumplimiento, 
                           meta_global, faltante, avance, cuota_req):
@@ -17,6 +18,8 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     COLOR_TEXTO = (50, 50, 50)       
     COLOR_GRIS = (189, 195, 199)     
     
+    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    
     # --- 1. ENCABEZADO ---
     pdf.set_font("Arial", "B", 16)
     pdf.set_text_color(*COLOR_TITULO)
@@ -25,7 +28,7 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     
     pdf.set_font("Arial", "", 11)
     pdf.set_text_color(*COLOR_TEXTO)
-    pdf.cell(0, 6, f"Periodo de Analisis: {periodo_seguro}", ln=True, align="C")
+    pdf.cell(0, 6, f"Periodo de Analisis: {periodo_seguro} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
     pdf.ln(5)
     
     # --- 2. CUADRO DE CONTROL ---
@@ -142,12 +145,15 @@ def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_genera
     pdf = FPDF()
     pdf.add_page()
     
+    # 1. Calculo de la fecha de cohorte
+    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
     pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR ENTIDADES", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen
@@ -194,13 +200,16 @@ def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_genera
 def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_general, total_cantidad, uf_top, valor_top, participacion_top):
     pdf = FPDF()
     pdf.add_page()
+
+    # 1. Calculo de la fecha de cohorte
+    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
     pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR UNIDADES FUNCIONALES", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen Operativo
@@ -252,13 +261,16 @@ def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_gener
 def generar_pdf_mercadeo(df_dashboard, etiqueta_periodo, total_general, total_categorias, categoria_top, valor_top, participacion_top):
     pdf = FPDF()
     pdf.add_page()
+
+    # 1. Calculo de la fecha de cohorte
+    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
     pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR LÍNEA DE MERCADEO", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen Operativo

@@ -83,7 +83,7 @@ def mostrar_entidades():
             fecha_fin = fecha_fin_sel.strftime("%Y-%m-%d")
             etiqueta_periodo = f"{fecha_ini_sel.strftime('%d/%m/%Y')} → {fecha_fin_sel.strftime('%d/%m/%Y')}"
 
-        st.info(f"📅 **Período de Análisis:** {etiqueta_periodo}")
+        st.info(f"📅 **Período de Análisis:** {etiqueta_periodo} | 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')}")
 
     # ==========================================
     # 2. CONEXIÓN Y CARGA DE DATOS
