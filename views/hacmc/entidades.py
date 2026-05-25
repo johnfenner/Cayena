@@ -160,7 +160,7 @@ def mostrar_entidades():
         st.markdown(f"**Representa el:** {formato_porcentaje(participacion_top)} del total")
 
     # ==========================================
-    # 4. TABLA DE DISTRIBUCIÓN MATRICIAL (SIN SCROLL VERTICAL)
+    # 4. TABLA DE DISTRIBUCIÓN MATRICIAL 
     # ==========================================
     st.header(f"📋 DISTRIBUCIÓN POR ENTIDAD")
     
@@ -201,15 +201,13 @@ def mostrar_entidades():
             return ['font-weight: bold; background-color: #f0f2f6; border-top: 2px solid #bdc3c7;'] * len(row)
         return [''] * len(row)
 
-    # NUEVO: Cálculo de altura dinámica. 35px por fila + 45px del header de la tabla.
-    # Al definir este alto exacto, el scroll vertical se destruye y la tabla fluye libremente hacia abajo.
     altura_calculada = (len(df_final) * 35) + 45
 
     st.dataframe(
         df_final.style.apply(estilar_tabla, axis=1).format(dict_formatos),
         use_container_width=True,
         hide_index=True,
-        height=altura_calculada  # <-- Forzamos el alto dinámico sin scroll vertical
+        height=altura_calculada  
     )
 
     # ==========================================
@@ -230,7 +228,7 @@ def mostrar_entidades():
     df_resumen_avanzado['Participacion_Pct'] = (df_resumen_avanzado['Total_Facturado'] / total_facturado_global) * 100
     df_resumen_avanzado['Promedio_Diario'] = df_resumen_avanzado['Total_Facturado'] / df_resumen_avanzado['Dias_Activos']
 
-    # 3. Extraer la serie de tiempo para los minigráficos (sparklines)
+    # 3. Extraer la serie de tiempo para los minigráficos 
     df_tendencia = df_ent.groupby(['entidad', 'fecha_obj'])['total_valor'].sum().reset_index()
     df_tendencia = df_tendencia.sort_values(by='fecha_obj')
     serie_tendencia = df_tendencia.groupby('entidad')['total_valor'].apply(list).reset_index(name='Tendencia_Visual')
@@ -239,8 +237,6 @@ def mostrar_entidades():
     df_dashboard = pd.merge(df_resumen_avanzado, serie_tendencia, on='entidad')
     df_dashboard = df_dashboard.sort_values(by='Total_Facturado', ascending=False)
 
-    # 5. Cálculo de altura dinámica para destruir el scroll vertical
-    # 35px por cada fila de entidad + 45px fijados para el encabezado de la tabla
     altura_dashboard_calculada = (len(df_dashboard) * 35) + 45
 
     # 6. Renderizar la tabla aplicando tu función 'formato_cop' para ver el dinero exacto con puntos

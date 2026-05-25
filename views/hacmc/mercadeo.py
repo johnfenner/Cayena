@@ -97,7 +97,6 @@ def mostrar_mercadeo():
         AND (c.estado IN ('0', '1', '2', '3') OR c.estado IS NULL)
     """
 
-    # Query optimizado basado en tu lógica original de UNION ALL
     query = f"""
     SELECT 
         linea_mercadeo,
@@ -171,7 +170,7 @@ def mostrar_mercadeo():
         st.markdown(f"<h3 style='color: #27ae60; margin-top: 0px;'>{formato_cop(valor_top)}</h3>", unsafe_allow_html=True)
 
     # ==========================================
-    # 4. TABLA MATRICIAL (ESTILO EXCEL)
+    # 4. TABLA MATRICIAL 
     # ==========================================
     st.header(f"📋 DISTRIBUCIÓN MATRICIAL POR DÍA")
     

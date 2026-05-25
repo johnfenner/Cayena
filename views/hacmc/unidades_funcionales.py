@@ -86,7 +86,7 @@ def mostrar_unidades_funcionales():
         st.info(f"📅 **Período de Análisis:** {etiqueta_periodo}")
 
     # ==========================================
-    # 2. CONEXIÓN Y CARGA DE DATOS (QUERY CONSOLIDADO)
+    # 2. CONEXIÓN Y CARGA DE DATOS 
     # ==========================================
     try:
         conn = st.connection("postgresql", type="sql")
@@ -94,14 +94,12 @@ def mostrar_unidades_funcionales():
         st.error(f"Error crítico al conectar con la base de datos: {e}")
         return
 
-    # Mantenemos los mismos filtros de negocio que garantizan consistencia financiera
     filtros_negocio = """
         AND (cd.facturado = '1' OR cd.facturado IS NULL OR TRIM(cd.facturado) = '')
         AND (cd.sw_paquete_facturado = '1' OR cd.sw_paquete_facturado IS NULL OR TRIM(cd.sw_paquete_facturado) = '')
         AND (c.estado IN ('0', '1', '2', '3') OR c.estado IS NULL)
     """
 
-    # Agrupamos el UNION ALL original por UF, Departamento y Fecha para no traer millones de filas inútiles
     query = f"""
     SELECT 
         unidad_funcional,
@@ -197,12 +195,12 @@ def mostrar_unidades_funcionales():
         st.markdown(f"<h3 style='color: #27ae60; margin-top: 0px;'>{formato_cop(valor_top)}</h3>", unsafe_allow_html=True)
         st.markdown(f"**Representa el:** {formato_porcentaje(participacion_top)} de la operación")
 
-# ==========================================
-    # 4. CONSTRUCCIÓN DE LA MATRIZ JERÁRQUICA (ESTILO EXCEL)
+    # ==========================================
+    # 4. CONSTRUCCIÓN DE LA MATRIZ JERÁRQUICA 
     # ==========================================
     st.header(f"📋 DISTRIBUCIÓN MATRICIAL (UF Y DEPARTAMENTOS)")
     
-    # 1. Aseguramos que siempre sea por día, igual que en el Excel (sin forzar meses)
+    # 1. Aseguramos que siempre sea por día
     df_uf['fecha_obj'] = pd.to_datetime(df_uf['fecha'])
     df_uf['columna_tiempo'] = df_uf['fecha_obj'].dt.strftime('%d/%m/%Y')
     
@@ -221,7 +219,7 @@ def mostrar_unidades_funcionales():
     filas_procesadas = []
     dict_formatos = {}
 
-    # 2. Agrupamos simulando la columna única "Etiquetas de fila" del Excel
+    # 2. Agrupamos 
     for uf_name, sub_df in df_pivot.groupby(level=0):
         # A. Fila Padre: Unidad Funcional (Suma total de sus departamentos)
         uf_totales = sub_df.sum()
@@ -281,7 +279,7 @@ def mostrar_unidades_funcionales():
         elif '(Cant)' in col or 'cantidad' in col:
             dict_formatos[col] = lambda x: f"{int(x):,}"
 
-    # 4. Estilos CSS para simular Excel (Negrita y sombreado para subtotales)
+    # 4. Estilos CSS (Negrita y sombreado para subtotales)
     def estilar_matriz_uf(row):
         etiqueta = str(row['Etiquetas de fila'])
         if etiqueta.startswith('➖') or etiqueta == 'Total general':

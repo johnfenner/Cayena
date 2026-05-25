@@ -15,7 +15,7 @@ def mostrar_vista():
     with col_logo:
         st.image("assets/images/logo_hacmc_magdalena_centro.png")
     
-    # 2. Creación de las Pestañas (Agregamos la 5ta pestaña)
+    # 2. Creación de las Pestañas 
     tab1, tab2, tab3, tab4 = st.tabs([
         "INFORME GENERAL", 
         "ENTIDADES", 

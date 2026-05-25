@@ -188,7 +188,7 @@ def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_genera
         pdf.cell(45, 6, total_f, border=1, align="R")
         pdf.cell(45, 6, promedio_d, border=1, ln=True, align="R")
         
-    # Retorno limpio de bytes (idéntico al reporte general)
+    # Retorno limpio de bytes 
     return pdf.output(dest="S").encode("latin-1")
 
 def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_general, total_cantidad, uf_top, valor_top, participacion_top):
