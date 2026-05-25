@@ -1,7 +1,7 @@
 import streamlit as st
 
 def render_sidebar():
-    # Diccionario centralizado de rutas de imágenes (medidas desde la raíz del proyecto)
+    # Diccionario centralizado de rutas de imágenes 
     LOGOS = {
         "holding": "assets/images/logo_cayena.jpg",
         "hacp": "assets/images/logo_hacp_putumayo.png",
@@ -54,24 +54,24 @@ def render_sidebar():
             unsafe_allow_html=True
         )
 
-        # NUEVA FUNCIÓN OPTIMIZADA CON CONTENEDORES HTML + COMPONENTE NATIVO
+        # FUNCIÓN CON CONTENEDORES HTML + COMPONENTE NATIVO
         def crear_opcion_sede(id_pagina, nombre_sede, url_imagen):
-            # Creamos un contenedor div que agrupa el logo y el botón en la misma línea
+            # Contenedor div que agrupa el logo y el botón en la misma línea
             st.markdown(f'<div class="fila-sede">', unsafe_allow_html=True)
             
-            # Dibujamos el logo usando st.image dentro de una clase CSS controlada
+            
             st.markdown('<div class="contenedor-logo-sidebar">', unsafe_allow_html=True)
             st.image(url_imagen, use_container_width=False)
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Dibujamos el botón nativo al lado que captura el evento clic
+            
             if st.button(nombre_sede, key=f"sidebar_btn_{id_pagina}", use_container_width=True):
                 st.session_state.active_page = id_pagina
                 st.rerun()
                 
             st.markdown('</div>', unsafe_allow_html=True) # Cierre de .fila-sede
 
-        # Renderizado de la lista de hospitales utilizando la nueva distribución expandida
+        # Renderizado de la lista de hospitales
         crear_opcion_sede("hacp", "HACP Putumayo", LOGOS["hacp"])
         crear_opcion_sede("hacmc", "HACMC Mag. Centro", LOGOS["hacmc"])
         crear_opcion_sede("ctm", "CTM Traumanorte", LOGOS["ctm"])
