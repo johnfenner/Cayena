@@ -153,7 +153,9 @@ def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_genera
     pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR ENTIDADES", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    
+    etiqueta_segura = etiqueta_periodo.replace("→", " al ")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen
@@ -209,7 +211,9 @@ def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_gener
     pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR UNIDADES FUNCIONALES", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    
+    etiqueta_segura = etiqueta_periodo.replace("→", " al ")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen Operativo
