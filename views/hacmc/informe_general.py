@@ -11,7 +11,9 @@ def mostrar_informe_general():
         unsafe_allow_html=True
     )
     
+    # ==========================================
     # 1. CONFIGURACIÓN DINÁMICA DE PERÍODOS Y METAS
+    # ==========================================
     with st.expander("⚙️ CONTROL DE PERÍODO Y METAS", expanded=True):
         modo_periodo = st.radio(
             "🗓️ ¿Cómo quiere ver los datos?",
@@ -25,7 +27,11 @@ def mostrar_informe_general():
             )
         )
 
-        ano_actual = datetime.now().year
+        # Variables base de fecha unificadas para el control de cohorte y límites
+        hoy_fecha = date.today()
+        ayer = hoy_fecha - timedelta(days=1)
+        ano_actual = hoy_fecha.year
+
         lista_anos = [ano_actual, ano_actual - 1, ano_actual - 2]
 
         meses_dic = {
@@ -47,7 +53,7 @@ def mostrar_informe_general():
                 mes_sel = st.selectbox(
                     "Mes", list(meses_dic.keys()),
                     format_func=lambda x: meses_dic[x],
-                    index=datetime.now().month - 1
+                    index=hoy_fecha.month - 1
                 )
             
             _, dias_en_mes = calendar.monthrange(ano_sel, mes_sel)
@@ -89,14 +95,14 @@ def mostrar_informe_general():
             dias_totales_periodo = 12 
 
         else:
-            hoy_fecha = date.today()
-            primer_dia_mes = hoy_fecha.replace(day=1)
+            # Rango de Fechas con validación estricta hasta el día de ayer
+            primer_dia_mes = ayer.replace(day=1)
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=hoy_fecha)
+                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=ayer)
             with col2:
-                fecha_fin_sel = st.date_input("Hasta", value=hoy_fecha, max_value=hoy_fecha + timedelta(days=365))
+                fecha_fin_sel = st.date_input("Hasta", value=ayer, max_value=ayer)
 
             if fecha_fin_sel < fecha_ini_sel:
                 st.error("⚠️ La fecha de fin debe ser mayor o igual a la de inicio.")
@@ -120,12 +126,17 @@ def mostrar_informe_general():
             meta_global_total = meta_comparativa_fila * dias_filtrados 
             dias_totales_periodo = dias_filtrados
 
-        if modo_periodo == "Por Año":
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
-        else:
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
+        # Formateo e inclusión visual de la cohorte igual que en Entidades
+        texto_cohorte = f"｜ 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')}"
 
+        if modo_periodo == "Por Año":
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} {texto_cohorte} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
+        else:
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} {texto_cohorte} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
+
+    # ==========================================
     # 2. CONEXIÓN Y CARGA DE DATOS
+    # ==========================================
     try:
         conn = st.connection("postgresql", type="sql")
     except Exception as e:
@@ -165,7 +176,9 @@ def mostrar_informe_general():
             st.error(f"❌ Error en la ejecución de la consulta SQL: {query_error}")
             return
 
+    # ==========================================
     # 3. PROCESAMIENTO ADAPTATIVO
+    # ==========================================
     df['fecha_cargo'] = pd.to_datetime(df['fecha_cargo'])
     df['valor_cargo'] = pd.to_numeric(df['valor_cargo'], errors='coerce').fillna(0)
 
@@ -267,7 +280,9 @@ def mostrar_informe_general():
     cuota_requerida_cierre = (monto_faltante_cierre / unidades_restantes) if unidades_restantes > 0 else 0
     porcentaje_avance_global = (total_facturado_rango / meta_global_total) if meta_global_total > 0 else 0
 
+    # ==========================================
     # 4. TABLA DINÁMICA DE FACTURACIÓN
+    # ==========================================
     st.header(f"📋 TABLA DE FACTURACIÓN ({lbl_unidad.upper()})")
     st.markdown(f"**Meta Base Promedio por {lbl_unidad_sing} de acuerdo a la Meta Planteada:** {formato_cop(meta_comparativa_fila)}")
 
@@ -306,7 +321,9 @@ def mostrar_informe_general():
         column_order=("Fecha", lbl_facturacion, lbl_diferencia, lbl_cumplimiento)
     )
 
+    # ==========================================
     # 5. CUADRO DE CONTROL Y CIERRE DE METAS 
+    # ==========================================
     st.divider()
     st.markdown("<h2 style='text-align: center; color: #2c3e50;'>CUADRO DE CONTROL Y CIERRE DE METAS</h2>", unsafe_allow_html=True)
     st.write("") 
@@ -369,7 +386,9 @@ def mostrar_informe_general():
         st.markdown("<hr style='margin: 10px 0px; border: none;'>", unsafe_allow_html=True)
         st.markdown(f"**{lbl_txt_avance}:** <span style='font-weight: bold; font-size:15px;'>{formato_porcentaje(porcentaje_avance_global)}</span> completado.", unsafe_allow_html=True)
 
+    # ==========================================
     # 6. GRÁFICO DE RENDIMIENTO
+    # ==========================================
     st.divider()
     st.header("📊 CONTROL GRÁFICO DE CONSUMO")
 
@@ -407,13 +426,15 @@ def mostrar_informe_general():
             formato_cop(meta_global_total),
             monto_faltante_cierre,
             porcentaje_avance_global,
-            cuota_requerida_cierre
+            cuota_requerida_cierre,
+            formato_cop(promedio_real_unidad),
+            formato_cop(meta_comparativa_fila)
         )
         
         st.download_button(
             label="📄 Exportar Informe a PDF",
             data=pdf_bytes,
-            file_name=f"Reporte_Facturacion_{fecha_inicio}.pdf",
+            file_name=f"Informe_General_Consumo_{df['fecha_cargo'].min().strftime('%Y-%m-%d')}_al_{df['fecha_cargo'].max().strftime('%Y-%m-%d')}.pdf",
             mime="application/pdf",
             use_container_width=True,
             type="primary"

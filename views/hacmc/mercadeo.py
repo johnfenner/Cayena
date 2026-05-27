@@ -275,7 +275,7 @@ def mostrar_mercadeo():
         st.download_button(
             label="📄 Exportar Informe de Mercadeo a PDF",
             data=pdf_bytes,
-            file_name=f"Reporte_Mercadeo_{fecha_inicio}.pdf",
+            file_name=f"Reporte_Mercadeo_Suministros_{df_merc['fecha_obj'].min().strftime('%Y-%m-%d')}_al_{df_merc['fecha_obj'].max().strftime('%Y-%m-%d')}.pdf",
             mime="application/pdf",
             use_container_width=True,
             type="primary"

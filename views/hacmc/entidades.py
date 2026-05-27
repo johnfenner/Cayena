@@ -297,7 +297,7 @@ def mostrar_entidades():
         st.download_button(
             label="📄 Exportar Informe de Entidades a PDF",
             data=pdf_bytes,
-            file_name=f"Reporte_Facturacion_Entidades_{fecha_inicio}.pdf",
+            file_name=f"Reporte_Facturacion_Entidades_{df_ent['fecha_obj'].min().strftime('%Y-%m-%d')}_al_{df_ent['fecha_obj'].max().strftime('%Y-%m-%d')}.pdf",
             mime="application/pdf",
             use_container_width=True,
             type="primary"
