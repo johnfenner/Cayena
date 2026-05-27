@@ -13,7 +13,7 @@ def render_sidebar():
 
     with st.sidebar:
         
-        st.markdown("<h3 style='text-align:center; margin-top:-10px; color:#1f6feb;'>HOLDING CAYENA AZUL</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align:center; margin-top:-10px; color:#1f6feb;'>HOLDING EMPRESARIAL CAYENA AZUL</h3>", unsafe_allow_html=True)
         st.write("---")
         
         st.markdown("<p style='text-align:center; font-weight:bold; color:#555; margin-bottom:15px;'>SEDES Y HOSPITALES</p>", unsafe_allow_html=True)
@@ -76,11 +76,16 @@ def render_sidebar():
         crear_opcion_sede("hacmc", "HACMC Mag. Centro", LOGOS["hacmc"])
         crear_opcion_sede("ctm", "CTM Traumanorte", LOGOS["ctm"])
         crear_opcion_sede("ucm", "UCM La Magdalena", LOGOS["ucm"])
-        crear_opcion_sede("hact", "HACT Tolima Grande", LOGOS["hact"])
+        # crear_opcion_sede("hact", "HACT Tolima Grande", LOGOS["hact"])
+                
+        # SE CREAN 3 COLUMNAS PARA ACHICAR Y CENTRAR EL LOGO
         
-        st.write("---")
+        col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
         
+        with col_logo2:
+            st.image(LOGOS["holding"], use_container_width=True)
+
         # Botón destacado para la vista consolidada global
-        if st.button("📊 VER TOTAL HOLDING", key="sidebar_btn_total", use_container_width=True, type="primary"):
+        if st.button("📊 VER TOTAL DEL HOLDING", key="sidebar_btn_total", use_container_width=True, type="primary"):
             st.session_state.active_page = "total"
             st.rerun()
