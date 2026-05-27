@@ -12,7 +12,7 @@ import views.hact as hact
 
 # ===== CONFIGURACIÓN GENERAL =====
 st.set_page_config(
-    page_title="Holding Cayena Azul",
+    page_title="Holding Empresarial Cayena Azul",
     layout="wide",
     initial_sidebar_state="expanded"
 )
