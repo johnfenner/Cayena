@@ -5,7 +5,8 @@ import tempfile
 from datetime import date, timedelta
 
 def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cumplimiento, 
-                          meta_global, faltante, avance, cuota_req):
+                          meta_global, faltante, avance, cuota_req, promedio_diario, meta_diaria):
+    
     periodo_seguro = periodo.replace("→", " al ")
     
     pdf = FPDF()
@@ -16,7 +17,7 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     if os.path.exists(ruta_logo):
         pdf.image(ruta_logo, x=10, y=8, w=60)
     
-    # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
+    # Título limpio debajo del logo
     pdf.set_y(23)
     
     # --- COLORES BASE ---
@@ -66,6 +67,13 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     pdf.set_font("Arial", "B", 10)
     pdf.cell(90, 6, f"Eficiencia / Cumplimiento: {formato_porcentaje(cumplimiento)}", ln=True)
     
+    # Promedio diario en columna izquierda
+    pdf.set_font("Arial", "", 9)
+    pdf.set_text_color(*COLOR_TEXTO)
+    pdf.cell(90, 5, f"Promedio Facturado por Día: {promedio_diario}", ln=True)
+    
+    y_final_izq = pdf.get_y()
+    
     # -- COLUMNA DERECHA --
     pdf.set_xy(105, y_inicial)
     pdf.set_font("Arial", "B", 10)
@@ -95,7 +103,15 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     pdf.set_font("Arial", "B", 10)
     pdf.set_text_color(*COLOR_TITULO)
     pdf.cell(90, 6, f"Avance Total: {formato_porcentaje(avance)}", ln=True)
-    pdf.ln(8) 
+    
+    # Meta diaria en columna derecha
+    pdf.set_xy(105, pdf.get_y())
+    pdf.set_font("Arial", "", 9)
+    pdf.set_text_color(*COLOR_TEXTO)
+    pdf.cell(90, 5, f"Meta Base Esperada por Día: {meta_diaria}", ln=True)
+    
+    y_final_der = pdf.get_y()
+    pdf.set_y(max(y_final_izq, y_final_der) + 8) 
     
     # --- 3. GRÁFICO DE RENDIMIENTO ---
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
@@ -121,10 +137,19 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
         fill = False
         pdf.set_text_color(0, 0, 0)
         
+        # LOGICA ACTUALIZADA PARA EL COLOR DEL TOTAL GENERAL
         if fila[cols[0]] == "Total general":
             pdf.set_font("Arial", "B", 9)
-            pdf.set_fill_color(248, 215, 218) 
-            pdf.set_text_color(114, 28, 36) 
+            val_diferencia = str(fila[cols[2]])
+            
+            # Si hay déficit  -> Rojo
+            if "-" in val_diferencia:
+                pdf.set_fill_color(248, 215, 218) # Fondo rojo claro
+                pdf.set_text_color(114, 28, 36)   # Texto rojo oscuro
+            # Si hay superávit (alcanzó o superó meta) -> Verde
+            else:
+                pdf.set_fill_color(212, 237, 218) # Fondo verde claro
+                pdf.set_text_color(21, 87, 36)    # Texto verde oscuro
             fill = True
         else:
             pdf.set_font("Arial", "", 9)
@@ -376,12 +401,20 @@ def formato_porcentaje(numero):
 
 def color_filas_vr(row):
     style = [''] * len(row)
-    if row['Fecha'] == 'Total general':
-        style = ['background-color: #f8d7da; font-weight: bold; color: #721c24;'] * len(row)
-        return style
     val_vr = row['_vr_num']
+    
+    # 1. Validación para la fila de Total general 
+    if row['Fecha'] == 'Total general':
+        if val_vr < 0:
+            style = ['background-color: #f8d7da; font-weight: bold; color: #721c24;'] * len(row)
+        else:
+            style = ['background-color: #d4edda; font-weight: bold; color: #155724;'] * len(row)
+        return style
+        
+    # 2. Validación para las filas normales
     if val_vr < 0:
         style = ['background-color: #f8d7da; color: #721c24;'] * len(row)
     else:
         style = ['background-color: #d4edda; color: #155724;'] * len(row)
+        
     return style

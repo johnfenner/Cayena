@@ -25,7 +25,10 @@ def mostrar_informe_general():
             )
         )
 
-        ano_actual = datetime.now().year
+        hoy_fecha = date.today()
+        ayer = hoy_fecha - timedelta(days=1)
+        ano_actual = hoy_fecha.year
+        
         lista_anos = [ano_actual, ano_actual - 1, ano_actual - 2]
 
         meses_dic = {
@@ -47,7 +50,7 @@ def mostrar_informe_general():
                 mes_sel = st.selectbox(
                     "Mes", list(meses_dic.keys()),
                     format_func=lambda x: meses_dic[x],
-                    index=datetime.now().month - 1
+                    index=ayer.month - 1
                 )
             
             _, dias_en_mes = calendar.monthrange(ano_sel, mes_sel)
@@ -89,14 +92,13 @@ def mostrar_informe_general():
             dias_totales_periodo = 12 
 
         else:
-            hoy_fecha = date.today()
-            primer_dia_mes = hoy_fecha.replace(day=1)
+            primer_dia_mes = ayer.replace(day=1)
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=hoy_fecha)
+                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=ayer)
             with col2:
-                fecha_fin_sel = st.date_input("Hasta", value=hoy_fecha, max_value=hoy_fecha + timedelta(days=365))
+                fecha_fin_sel = st.date_input("Hasta", value=ayer, max_value=ayer)
 
             if fecha_fin_sel < fecha_ini_sel:
                 st.error("⚠️ La fecha de fin debe ser mayor o igual a la de inicio.")
@@ -121,9 +123,9 @@ def mostrar_informe_general():
             dias_totales_periodo = dias_filtrados
 
         if modo_periodo == "Por Año":
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
         else:
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
 
     # 2. CONEXIÓN Y CARGA DE DATOS
     try:
@@ -416,13 +418,15 @@ def mostrar_informe_general():
             formato_cop(meta_global_total),
             monto_faltante_cierre,
             porcentaje_avance_global,
-            cuota_requerida_cierre
+            cuota_requerida_cierre,
+            formato_cop(promedio_real_unidad),
+            formato_cop(meta_comparativa_fila)
         )
         
         st.download_button(
             label="📄 Exportar Informe a PDF",
             data=pdf_bytes,
-            file_name=f"Reporte_Facturacion_{fecha_inicio}.pdf",
+            file_name=f"Informe_General_Consumo_{df['fecha_cargo'].min().strftime('%Y-%m-%d')}_al_{df['fecha_cargo'].max().strftime('%Y-%m-%d')}.pdf",
             mime="application/pdf",
             use_container_width=True,
             type="primary"
