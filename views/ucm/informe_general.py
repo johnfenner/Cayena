@@ -3,7 +3,15 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
 import plotly.graph_objects as go
-from .utils import formato_cop, formato_porcentaje, color_filas_vr, generar_pdf_fidedigno
+
+from .utils import (
+    formato_cop, 
+    formato_porcentaje, 
+    color_filas_vr, 
+    generar_pdf_fidedigno,
+    obtener_meta_guardada,   
+    guardar_nueva_meta       
+)
 
 def mostrar_informe_general():
     st.markdown(
@@ -11,7 +19,12 @@ def mostrar_informe_general():
         unsafe_allow_html=True
     )
     
+    # 1. Cargar la última meta almacenada en el JSON local
+    meta_mensual_base_default = obtener_meta_guardada()
+    
+    # ==========================================
     # 1. CONFIGURACIÓN DINÁMICA DE PERÍODOS Y METAS
+    # ==========================================
     with st.expander("⚙️ CONTROL DE PERÍODO Y METAS", expanded=True):
         modo_periodo = st.radio(
             "🗓️ ¿Cómo quiere ver los datos?",
@@ -40,7 +53,16 @@ def mostrar_informe_general():
         fecha_inicio = None
         fecha_fin = None
         etiqueta_periodo = ""
-        meta_mensual_base = 20_000_000_000
+        
+        # Funciones callback que se ejecutan inmediatamente al cambiar el valor
+        def cb_actualizar_meta_mes():
+            guardar_nueva_meta(st.session_state.mag_meta_mes)
+
+        def cb_actualizar_meta_ano():
+            guardar_nueva_meta(st.session_state.mag_meta_ano)
+
+        def cb_actualizar_meta_rango():
+            guardar_nueva_meta(st.session_state.mag_meta_rango)
 
         if modo_periodo == "Por Mes":
             col1, col2, col3 = st.columns(3)
@@ -61,9 +83,11 @@ def mostrar_informe_general():
             with col3:
                 meta_mensual_base = st.number_input(
                     "Meta del Mes (COP)",
-                    value=20_000_000_000,
-                    step=500_000_000,
-                    format="%d"
+                    value=meta_mensual_base_default,
+                    step=500000000,
+                    format="%d",
+                    key="mag_meta_mes",
+                    on_change=cb_actualizar_meta_mes
                 )
             
             meta_global_total = meta_mensual_base
@@ -82,9 +106,11 @@ def mostrar_informe_general():
             with col2:
                 meta_mensual_base = st.number_input(
                     "Meta Mensual Estándar (COP)",
-                    value=20_000_000_000,
-                    step=500_000_000,
-                    format="%d"
+                    value=meta_mensual_base_default,
+                    step=500000000,
+                    format="%d",
+                    key="mag_meta_ano",
+                    on_change=cb_actualizar_meta_ano
                 )
             
             meta_global_total = meta_mensual_base * 12
@@ -112,9 +138,11 @@ def mostrar_informe_general():
             with col3:
                 meta_mensual_base = st.number_input(
                     "Meta Mensual de Referencia (COP)",
-                    value=20_000_000_000,
-                    step=500_000_000,
-                    format="%d"
+                    value=meta_mensual_base_default,
+                    step=500000000,
+                    format="%d",
+                    key="mag_meta_rango",
+                    on_change=cb_actualizar_meta_rango
                 )
             
             _, dias_mes_ref = calendar.monthrange(fecha_ini_sel.year, fecha_ini_sel.month)
@@ -127,7 +155,10 @@ def mostrar_informe_general():
         else:
             st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
 
+    # ==========================================
     # 2. CONEXIÓN Y CARGA DE DATOS
+    # ==========================================
+   
     try:
         conn = st.connection(
             "ucm", 

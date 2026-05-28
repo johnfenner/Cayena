@@ -3,6 +3,36 @@ from fpdf import FPDF
 import os
 import tempfile
 from datetime import date, timedelta
+import json
+import streamlit as st
+
+# ==========================================
+# 0. PERSISTENCIA DE CONFIGURACIÓN LA MAGDALENA
+# ==========================================
+ARCHIVO_META_MAGDALENA = "config_meta_magdalena.json"
+META_INICIAL_SISTEMA_MAGDALENA = 20000000000  
+
+def obtener_meta_guardada():
+    """Lee la meta del archivo JSON. Si no existe, lo crea con el valor inicial."""
+    if not os.path.exists(ARCHIVO_META_MAGDALENA):
+        guardar_nueva_meta(META_INICIAL_SISTEMA_MAGDALENA)
+        return META_INICIAL_SISTEMA_MAGDALENA
+    
+    try:
+        with open(ARCHIVO_META_MAGDALENA, 'r') as file:
+            datos = json.load(file)
+            return datos.get("meta_mensual", META_INICIAL_SISTEMA_MAGDALENA)
+    except Exception:
+        return META_INICIAL_SISTEMA_MAGDALENA
+
+def guardar_nueva_meta(nueva_meta):
+    """Sobreescribe el archivo JSON con el nuevo valor de la meta."""
+    try:
+        with open(ARCHIVO_META_MAGDALENA, 'w') as file:
+            json.dump({"meta_mensual": nueva_meta}, file)
+    except Exception as e:
+        st.error(f"Error al guardar la meta de La Magdalena: {e}")
+
 
 def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cumplimiento, 
                           meta_global, faltante, avance, cuota_req, promedio_diario, meta_diaria):
