@@ -1,8 +1,40 @@
 import pandas as pd
 from fpdf import FPDF
 import os
+import json
+import streamlit as st
 import tempfile
 from datetime import date, timedelta
+
+# Archivo local para persistencia de la meta del Hospital de la Dorada
+ARCHIVO_META_DORADA = "config_meta_dorada.json"
+META_INICIAL_DORADA = 31700000000  
+
+# ==========================================
+# 0. PERSISTENCIA DE CONFIGURACIÓN GLOBAL
+# ==========================================
+
+def obtener_meta_guardada_dorada():
+    """Lee la meta del archivo JSON de la Dorada. Si no existe, lo crea con el valor inicial."""
+    if not os.path.exists(ARCHIVO_META_DORADA):
+        guardar_nueva_meta_dorada(META_INICIAL_DORADA)
+        return META_INICIAL_DORADA
+    
+    try:
+        with open(ARCHIVO_META_DORADA, 'r') as file:
+            datos = json.load(file)
+            return datos.get("meta_mensual", META_INICIAL_DORADA)
+    except Exception:
+        return META_INICIAL_DORADA
+
+def guardar_nueva_meta_dorada(nueva_meta):
+    """Sobreescribe el archivo JSON con el nuevo valor de la meta de la Dorada."""
+    try:
+        with open(ARCHIVO_META_DORADA, 'w') as file:
+            json.dump({"meta_mensual": nueva_meta}, file)
+    except Exception as e:
+        st.error(f"Error al guardar la meta de La Dorada: {e}")
+
 
 def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cumplimiento, 
                           meta_global, faltante, avance, cuota_req, promedio_diario, meta_diaria):

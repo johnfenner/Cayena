@@ -3,13 +3,24 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import calendar
 import plotly.graph_objects as go
-from .utils import formato_cop, formato_porcentaje, color_filas_vr, generar_pdf_fidedigno
+
+from .utils import (
+    formato_cop, 
+    formato_porcentaje, 
+    color_filas_vr, 
+    generar_pdf_fidedigno,
+    obtener_meta_guardada_dorada,
+    guardar_nueva_meta_dorada
+)
 
 def mostrar_informe_general():
     st.markdown(
         "<h2 style='text-align: center;'>📊 INFORME GENERAL - CONSUMO DIARIO</h2>", 
         unsafe_allow_html=True
     )
+    
+    # 1. Cargar la última meta almacenada de forma persistente
+    meta_mensual_base_default = obtener_meta_guardada_dorada()
     
     # ==========================================
     # 1. CONFIGURACIÓN DINÁMICA DE PERÍODOS Y METAS
@@ -24,7 +35,8 @@ def mostrar_informe_general():
                 "**Por Mes**: Ver un mes específico con meta mensual.\n\n"
                 "**Por Año**: Ver todo un año con meta anual basada en la cuota mensual.\n\n"
                 "**Rango de Fechas**: Elegir libremente fechas de inicio y fin."
-            )
+            ),
+            key="dorada_general_radio"
         )
 
         # Variables base de fecha unificadas para el control de cohorte y límites
@@ -43,17 +55,29 @@ def mostrar_informe_general():
         fecha_inicio = None
         fecha_fin = None
         etiqueta_periodo = ""
-        meta_mensual_base = 31_700_000_000
+        meta_mensual_base = meta_mensual_base_default
+
+        # --- Callbacks para guardar de inmediato el cambio en el JSON ---
+        def cb_actualizar_meta_mes_dorada():
+            guardar_nueva_meta_dorada(st.session_state.dorada_meta_mes)
+
+        def cb_actualizar_meta_ano_dorada():
+            guardar_nueva_meta_dorada(st.session_state.dorada_meta_ano)
+
+        def cb_actualizar_meta_rango_dorada():
+            guardar_nueva_meta_dorada(st.session_state.dorada_meta_rango)
+
 
         if modo_periodo == "Por Mes":
             col1, col2, col3 = st.columns(3)
             with col1:
-                ano_sel = st.selectbox("Año", lista_anos, index=0)
+                ano_sel = st.selectbox("Año", lista_anos, index=0, key="dorada_ano")
             with col2:
                 mes_sel = st.selectbox(
                     "Mes", list(meses_dic.keys()),
                     format_func=lambda x: meses_dic[x],
-                    index=hoy_fecha.month - 1
+                    index=hoy_fecha.month - 1,
+                    key="dorada_mes"
                 )
             
             _, dias_en_mes = calendar.monthrange(ano_sel, mes_sel)
@@ -64,9 +88,11 @@ def mostrar_informe_general():
             with col3:
                 meta_mensual_base = st.number_input(
                     "Meta del Mes (COP)",
-                    value=31_700_000_000,
+                    value=meta_mensual_base_default,
                     step=500_000_000,
-                    format="%d"
+                    format="%d",
+                    key="dorada_meta_mes",
+                    on_change=cb_actualizar_meta_mes_dorada
                 )
             
             meta_global_total = meta_mensual_base
@@ -76,7 +102,7 @@ def mostrar_informe_general():
         elif modo_periodo == "Por Año":
             col1, col2 = st.columns(2)
             with col1:
-                ano_sel = st.selectbox("Año", lista_anos, index=0)
+                ano_sel = st.selectbox("Año", lista_anos, index=0, key="dorada_ano_solo")
             
             fecha_inicio = f"{ano_sel}-01-01"
             fecha_fin = f"{ano_sel}-12-31"
@@ -85,9 +111,11 @@ def mostrar_informe_general():
             with col2:
                 meta_mensual_base = st.number_input(
                     "Meta Mensual Estándar (COP)",
-                    value=31_700_000_000,
+                    value=meta_mensual_base_default,
                     step=500_000_000,
-                    format="%d"
+                    format="%d",
+                    key="dorada_meta_ano",
+                    on_change=cb_actualizar_meta_ano_dorada
                 )
             
             meta_global_total = meta_mensual_base * 12
@@ -100,9 +128,9 @@ def mostrar_informe_general():
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=ayer)
+                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=ayer, key="dorada_f_ini")
             with col2:
-                fecha_fin_sel = st.date_input("Hasta", value=ayer, max_value=ayer)
+                fecha_fin_sel = st.date_input("Hasta", value=ayer, max_value=ayer, key="dorada_f_fin")
 
             if fecha_fin_sel < fecha_ini_sel:
                 st.error("⚠️ La fecha de fin debe ser mayor o igual a la de inicio.")
@@ -116,9 +144,11 @@ def mostrar_informe_general():
             with col3:
                 meta_mensual_base = st.number_input(
                     "Meta Mensual de Referencia (COP)",
-                    value=31_700_000_000,
+                    value=meta_mensual_base_default,
                     step=500_000_000,
-                    format="%d"
+                    format="%d",
+                    key="dorada_meta_rango",
+                    on_change=cb_actualizar_meta_rango_dorada
                 )
             
             _, dias_mes_ref = calendar.monthrange(fecha_ini_sel.year, fecha_ini_sel.month)
