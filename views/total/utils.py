@@ -2,8 +2,38 @@ import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 import os
+import json
 import tempfile
 from datetime import date, timedelta
+
+# Archivo local para persistencia de la meta
+ARCHIVO_META = "config_meta.json"
+META_INICIAL_SISTEMA = 92000000000
+
+# ==========================================
+# 0. PERSISTENCIA DE CONFIGURACIÓN GLOBAL
+# ==========================================
+
+def obtener_meta_guardada():
+    """Lee la meta del archivo JSON. Si no existe, lo crea con el valor inicial."""
+    if not os.path.exists(ARCHIVO_META):
+        guardar_nueva_meta(META_INICIAL_SISTEMA)
+        return META_INICIAL_SISTEMA
+    
+    try:
+        with open(ARCHIVO_META, 'r') as file:
+            datos = json.load(file)
+            return datos.get("meta_mensual", META_INICIAL_SISTEMA)
+    except Exception:
+        return META_INICIAL_SISTEMA
+
+def guardar_nueva_meta(nueva_meta):
+    """Sobreescribe el archivo JSON con el nuevo valor de la meta."""
+    try:
+        with open(ARCHIVO_META, 'w') as file:
+            json.dump({"meta_mensual": nueva_meta}, file)
+    except Exception as e:
+        st.error(f"Error al guardar la meta: {e}")
 
 # ==========================================
 # 1. MOTOR DE EXTRACCIÓN MULTI-SEDE 

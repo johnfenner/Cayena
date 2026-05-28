@@ -10,7 +10,9 @@ from .utils import (
     formato_porcentaje, 
     color_filas_vr, 
     obtener_datos_holding, 
-    generar_pdf_fidedigno_holding
+    generar_pdf_fidedigno_holding,
+    obtener_meta_guardada,   
+    guardar_nueva_meta      
 )
 
 def mostrar_informe_general():
@@ -18,6 +20,9 @@ def mostrar_informe_general():
         "<h2 style='text-align: center;'>📊 INFORME GENERAL CONSOLIDADO - HOLDING</h2>", 
         unsafe_allow_html=True
     )
+    
+    # 1. Cargar la última meta almacenada en el JSON local
+    meta_mensual_base_default = obtener_meta_guardada()
     
     # ==========================================
     # 1. CONFIGURACIÓN DINÁMICA DE PERÍODOS Y METAS
@@ -52,14 +57,22 @@ def mostrar_informe_general():
         fecha_fin = None
         etiqueta_periodo = ""
         
-        # Meta mensual global por defecto (Suma aproximada de las 4 sedes)
-        meta_mensual_base_default = 92_000_000_000  
+        # Funciones callback que se ejecutan inmediatamente al detectar un cambio de valor
+        def cb_actualizar_meta_mes():
+            guardar_nueva_meta(st.session_state.hg_meta_mes)
+
+        def cb_actualizar_meta_ano():
+            guardar_nueva_meta(st.session_state.hg_meta_ano)
+
+        def cb_actualizar_meta_rango():
+            guardar_nueva_meta(st.session_state.hg_meta_rango)
 
         if modo_periodo == "Por Mes":
             col1, col2, col3 = st.columns(3)
             with col1:
                 ano_sel = st.selectbox("Año", lista_anos, index=0, key="hg_ano")
             with col2:
+                # Mantenemos los meses numéricos para que calendar.monthrange funcione perfectamente
                 mes_sel = st.selectbox(
                     "Mes", list(meses_dic.keys()),
                     format_func=lambda x: meses_dic[x],
@@ -78,7 +91,8 @@ def mostrar_informe_general():
                     value=meta_mensual_base_default,
                     step=1000000000,
                     format="%d",
-                    key="hg_meta_mes"
+                    key="hg_meta_mes",
+                    on_change=cb_actualizar_meta_mes
                 )
             
             meta_global_total = meta_mensual_base
@@ -100,7 +114,8 @@ def mostrar_informe_general():
                     value=meta_mensual_base_default,
                     step=1000000000,
                     format="%d",
-                    key="hg_meta_ano"
+                    key="hg_meta_ano",
+                    on_change=cb_actualizar_meta_ano
                 )
             
             meta_global_total = meta_mensual_base * 12
@@ -131,7 +146,8 @@ def mostrar_informe_general():
                     value=meta_mensual_base_default,
                     step=1000000000,
                     format="%d",
-                    key="hg_meta_rango"
+                    key="hg_meta_rango",
+                    on_change=cb_actualizar_meta_rango
                 )
             
             _, dias_mes_ref = calendar.monthrange(fecha_ini_sel.year, fecha_ini_sel.month)
@@ -139,7 +155,7 @@ def mostrar_informe_general():
             meta_global_total = meta_comparativa_fila * dias_filtrados 
             dias_totales_periodo = dias_filtrados
 
-        # --- CORRECCIÓN: Inclusión del indicador de Cohorte ---
+        # --- Inclusión del indicador de Cohorte ---
         cohorte_str = ayer.strftime('%d-%m-%Y')
         if modo_periodo == "Por Año":
             st.info(f"📅 **Análisis Holding:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {cohorte_str} ｜ 🎯 **Meta Global Mensual:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Global Anual:** {formato_cop(meta_global_total)}")
