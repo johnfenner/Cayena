@@ -1,8 +1,40 @@
+import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 import os
 import tempfile
+import json  
 from datetime import date, timedelta
+
+# ==========================================
+# 0. PERSISTENCIA DE CONFIGURACIÓN PUTUMAYO
+# ==========================================
+
+# Archivo local específico para la meta de Putumayo
+ARCHIVO_META_PUTU = "config_meta_putu.json"
+META_INICIAL_SISTEMA_PUTU = 31700000000  
+
+def obtener_meta_guardada_putu():
+    """Lee la meta del archivo JSON. Si no existe, lo crea con el valor inicial."""
+    if not os.path.exists(ARCHIVO_META_PUTU):
+        guardar_nueva_meta_putu(META_INICIAL_SISTEMA_PUTU)
+        return META_INICIAL_SISTEMA_PUTU
+    
+    try:
+        with open(ARCHIVO_META_PUTU, 'r') as file:
+            datos = json.load(file)
+            return datos.get("meta_mensual", META_INICIAL_SISTEMA_PUTU)
+    except Exception:
+        return META_INICIAL_SISTEMA_PUTU
+
+def guardar_nueva_meta_putu(nueva_meta):
+    """Sobreescribe el archivo JSON con el nuevo valor de la meta."""
+    try:
+        with open(ARCHIVO_META_PUTU, 'w') as file:
+            json.dump({"meta_mensual": nueva_meta}, file)
+    except Exception as e:
+        st.error(f"Error al guardar la meta: {e}")
+
 
 def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cumplimiento, 
                           meta_global, faltante, avance, cuota_req, promedio_diario, meta_diaria):
