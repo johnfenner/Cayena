@@ -3,6 +3,34 @@ from fpdf import FPDF
 import os
 import tempfile
 from datetime import date, timedelta
+import json
+import streamlit as st
+
+# Archivo local para persistencia de la meta del Tolima
+ARCHIVO_META_TOLIMA = "config_meta_tolima.json"
+META_INICIAL_TOLIMA = 31700000000
+
+def obtener_meta_guardada_tolima():
+    """Lee la meta del archivo JSON de Tolima. Si no existe, lo crea con el valor inicial."""
+    if not os.path.exists(ARCHIVO_META_TOLIMA):
+        guardar_nueva_meta_tolima(META_INICIAL_TOLIMA)
+        return META_INICIAL_TOLIMA
+    
+    try:
+        with open(ARCHIVO_META_TOLIMA, 'r') as file:
+            datos = json.load(file)
+            return datos.get("meta_mensual", META_INICIAL_TOLIMA)
+    except Exception:
+        return META_INICIAL_TOLIMA
+
+def guardar_nueva_meta_tolima(nueva_meta):
+    """Sobreescribe el archivo JSON con el nuevo valor de la meta de Tolima."""
+    try:
+        with open(ARCHIVO_META_TOLIMA, 'w') as file:
+            json.dump({"meta_mensual": nueva_meta}, file)
+    except Exception as e:
+        st.error(f"Error al guardar la meta de Tolima: {e}")
+
 
 def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cumplimiento, 
                           meta_global, faltante, avance, cuota_req, promedio_diario, meta_diaria):
