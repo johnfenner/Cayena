@@ -4,6 +4,7 @@ from .informe_general import mostrar_informe_general
 from .entidades import mostrar_entidades
 from .unidades_funcionales import mostrar_unidades_funcionales
 from .mercadeo import mostrar_mercadeo 
+from .resumen import mostrar_resumen_ejecutivo
 
 def mostrar_vista():
     # 1. Configuración de la página
@@ -15,11 +16,12 @@ def mostrar_vista():
         st.image("assets/images/logo_hacp_putumayo.png")
     
     # 2. Creación de las Pestañas 
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "INFORME GENERAL", 
         "ENTIDADES", 
         "UNIDADES FUNCIONALES", 
-        "MERCADEO"  
+        "MERCADEO",
+        "RESUMEN EJECUTIVO"  
     ])
     
     # 3. Asignación de contenido modularizado a cada pestaña
@@ -34,6 +36,9 @@ def mostrar_vista():
         
     with tab4:
         mostrar_mercadeo() 
+
+    with tab5:
+        mostrar_resumen_ejecutivo()     
     
 
 if __name__ == "__main__":
