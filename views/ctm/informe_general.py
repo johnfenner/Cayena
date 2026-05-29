@@ -1,4 +1,3 @@
-# views/total/informe_general.py
 import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta
@@ -9,27 +8,24 @@ from .utils import (
     formato_cop, 
     formato_porcentaje, 
     color_filas_vr, 
-    obtener_datos_holding, 
-    generar_pdf_fidedigno_holding,
-    obtener_meta_guardada,   
-    guardar_nueva_meta      
+    generar_pdf_fidedigno,
+    obtener_meta_guardada_traumanorte,
+    guardar_nueva_meta_traumanorte
 )
 
 def mostrar_informe_general():
     st.markdown(
-        "<h2 style='text-align: center;'>📊 INFORME GENERAL CONSOLIDADO - HOLDING</h2>", 
+        "<h2 style='text-align: center;'>📊 INFORME GENERAL - CONSUMO DIARIO</h2>", 
         unsafe_allow_html=True
     )
     
-    # 1. Cargar la última meta almacenada en el JSON local
-    meta_mensual_base_default = obtener_meta_guardada()
+    # 1. Cargar la última meta almacenada en el JSON local para Traumanorte
+    meta_mensual_base_default = obtener_meta_guardada_traumanorte()
     
-    # ==========================================
     # 1. CONFIGURACIÓN DINÁMICA DE PERÍODOS Y METAS
-    # ==========================================
-    with st.expander("⚙️ CONTROL DE PERÍODO Y META GLOBAL", expanded=True):
+    with st.expander("⚙️ CONTROL DE PERÍODO Y METAS", expanded=True):
         modo_periodo = st.radio(
-            "🗓️ ¿Cómo quiere ver los datos del Holding?",
+            "🗓️ ¿Cómo quiere ver los datos?",
             options=["Por Mes", "Por Año", "Rango de Fechas"],
             index=0,
             horizontal=True,
@@ -37,14 +33,13 @@ def mostrar_informe_general():
                 "**Por Mes**: Ver un mes específico con meta mensual.\n\n"
                 "**Por Año**: Ver todo un año con meta anual basada en la cuota mensual.\n\n"
                 "**Rango de Fechas**: Elegir libremente fechas de inicio y fin."
-            ),
-            key="holding_general_radio"
+            )
         )
 
-        # --- Definimos las fechas de control de cohorte y máximos al inicio ---
         hoy_fecha = date.today()
         ayer = hoy_fecha - timedelta(days=1)
         ano_actual = hoy_fecha.year
+        
         lista_anos = [ano_actual, ano_actual - 1, ano_actual - 2]
 
         meses_dic = {
@@ -57,27 +52,26 @@ def mostrar_informe_general():
         fecha_fin = None
         etiqueta_periodo = ""
         
-        # Funciones callback que se ejecutan inmediatamente al detectar un cambio de valor
-        def cb_actualizar_meta_mes():
-            guardar_nueva_meta(st.session_state.hg_meta_mes)
+        # Funciones callback independientes para no chocar con las del holding
+        def cb_actualizar_meta_mes_tn():
+            guardar_nueva_meta_traumanorte(st.session_state.tn_meta_mes)
 
-        def cb_actualizar_meta_ano():
-            guardar_nueva_meta(st.session_state.hg_meta_ano)
+        def cb_actualizar_meta_ano_tn():
+            guardar_nueva_meta_traumanorte(st.session_state.tn_meta_ano)
 
-        def cb_actualizar_meta_rango():
-            guardar_nueva_meta(st.session_state.hg_meta_rango)
+        def cb_actualizar_meta_rango_tn():
+            guardar_nueva_meta_traumanorte(st.session_state.tn_meta_rango)
 
         if modo_periodo == "Por Mes":
             col1, col2, col3 = st.columns(3)
             with col1:
-                ano_sel = st.selectbox("Año", lista_anos, index=0, key="hg_ano")
+                ano_sel = st.selectbox("Año", lista_anos, index=0, key="tn_ano")
             with col2:
-                # Mantenemos los meses numéricos para que calendar.monthrange funcione perfectamente
                 mes_sel = st.selectbox(
                     "Mes", list(meses_dic.keys()),
                     format_func=lambda x: meses_dic[x],
-                    index=hoy_fecha.month - 1,
-                    key="hg_mes"
+                    index=ayer.month - 1,
+                    key="tn_mes"
                 )
             
             _, dias_en_mes = calendar.monthrange(ano_sel, mes_sel)
@@ -87,12 +81,12 @@ def mostrar_informe_general():
 
             with col3:
                 meta_mensual_base = st.number_input(
-                    "Meta Global del Mes (COP)",
+                    "Meta del Mes (COP)",
                     value=meta_mensual_base_default,
-                    step=1000000000,
+                    step=500_000_000,
                     format="%d",
-                    key="hg_meta_mes",
-                    on_change=cb_actualizar_meta_mes
+                    key="tn_meta_mes",
+                    on_change=cb_actualizar_meta_mes_tn
                 )
             
             meta_global_total = meta_mensual_base
@@ -102,7 +96,7 @@ def mostrar_informe_general():
         elif modo_periodo == "Por Año":
             col1, col2 = st.columns(2)
             with col1:
-                ano_sel = st.selectbox("Año", lista_anos, index=0, key="hg_ano_solo")
+                ano_sel = st.selectbox("Año", lista_anos, index=0, key="tn_ano_solo")
             
             fecha_inicio = f"{ano_sel}-01-01"
             fecha_fin = f"{ano_sel}-12-31"
@@ -110,12 +104,12 @@ def mostrar_informe_general():
 
             with col2:
                 meta_mensual_base = st.number_input(
-                    "Meta Mensual Global Estándar (COP)",
+                    "Meta Mensual Estándar (COP)",
                     value=meta_mensual_base_default,
-                    step=1000000000,
+                    step=500_000_000,
                     format="%d",
-                    key="hg_meta_ano",
-                    on_change=cb_actualizar_meta_ano
+                    key="tn_meta_ano",
+                    on_change=cb_actualizar_meta_ano_tn
                 )
             
             meta_global_total = meta_mensual_base * 12
@@ -127,9 +121,9 @@ def mostrar_informe_general():
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=ayer, key="hg_f_ini")
+                fecha_ini_sel = st.date_input("Desde", value=primer_dia_mes, max_value=ayer, key="tn_f_ini")
             with col2:
-                fecha_fin_sel = st.date_input("Hasta", value=ayer, max_value=ayer, key="hg_f_fin")
+                fecha_fin_sel = st.date_input("Hasta", value=ayer, max_value=ayer, key="tn_f_fin")
 
             if fecha_fin_sel < fecha_ini_sel:
                 st.error("⚠️ La fecha de fin debe ser mayor o igual a la de inicio.")
@@ -142,12 +136,12 @@ def mostrar_informe_general():
             
             with col3:
                 meta_mensual_base = st.number_input(
-                    "Meta Mensual Global de Referencia (COP)",
+                    "Meta Mensual de Referencia (COP)",
                     value=meta_mensual_base_default,
-                    step=1000000000,
+                    step=500_000_000,
                     format="%d",
-                    key="hg_meta_rango",
-                    on_change=cb_actualizar_meta_rango
+                    key="tn_meta_rango",
+                    on_change=cb_actualizar_meta_rango_tn
                 )
             
             _, dias_mes_ref = calendar.monthrange(fecha_ini_sel.year, fecha_ini_sel.month)
@@ -155,16 +149,27 @@ def mostrar_informe_general():
             meta_global_total = meta_comparativa_fila * dias_filtrados 
             dias_totales_periodo = dias_filtrados
 
-        # --- Inclusión del indicador de Cohorte ---
-        cohorte_str = ayer.strftime('%d-%m-%Y')
         if modo_periodo == "Por Año":
-            st.info(f"📅 **Análisis Holding:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {cohorte_str} ｜ 🎯 **Meta Global Mensual:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Global Anual:** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **corte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
         else:
-            st.info(f"📅 **Análisis Holding:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {cohorte_str} ｜ 🎯 **Meta Global Calculada:** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **corte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
+   
+    # 2. CONEXIÓN Y CARGA DE DATOS
+    try:
+        conn = st.connection(
+            "traumanorte", 
+            type="sql",
+            connect_args={
+                "sslmode": "verify-ca",
+                "sslrootcert": "C:/Users/JOHN/Documents/Proyecto/.streamlit/ca_traumanorte.crt",
+                "sslcert": "C:/Users/JOHN/Documents/Proyecto/.streamlit/lector_traumanorte.crt",
+                "sslkey": "C:/Users/JOHN/Documents/Proyecto/.streamlit/lector_traumanorte.key"
+            }
+        )
+    except Exception as e:
+        st.error(f"Error crítico al conectar con la base de datos: {e}")
+        return
 
-    # ==========================================
-    # 2. EXTRACCIÓN MULTI-SEDE Y CARGA DE DATOS
-    # ==========================================
     filtros_negocio = """
         AND (cd.facturado = '1' OR cd.facturado IS NULL OR TRIM(cd.facturado) = '')
         AND (cd.sw_paquete_facturado = '1' OR cd.sw_paquete_facturado IS NULL OR TRIM(cd.sw_paquete_facturado) = '')
@@ -188,19 +193,17 @@ def mostrar_informe_general():
         AND cd.cargo NOT IN ('IMD','DIMD') {filtros_negocio}
     """
 
-    with st.spinner("📥 Extrayendo y consolidando registros de las 4 sedes..."):
+    with st.spinner("📥 Extrayendo registros de la base de datos..."):
         try:
-            df = obtener_datos_holding(query)
+            df = conn.query(query, ttl="1m")
             if df.empty:
-                st.warning(f"⚠️ No se encontraron registros en el Holding para las fechas seleccionadas.")
+                st.warning(f"⚠️ No se encontraron registros en las fechas seleccionadas.")
                 return
         except Exception as query_error:
-            st.error(f"❌ Error en la ejecución de la consolidación: {query_error}")
+            st.error(f"❌ Error en la ejecución de la consulta SQL: {query_error}")
             return
 
-    # ==========================================
-    # 3. PROCESAMIENTO ADAPTATIVO CONSOLIDADO
-    # ==========================================
+    # 3. PROCESAMIENTO ADAPTATIVO
     df['fecha_cargo'] = pd.to_datetime(df['fecha_cargo'])
     df['valor_cargo'] = pd.to_numeric(df['valor_cargo'], errors='coerce').fillna(0)
 
@@ -223,21 +226,21 @@ def mostrar_informe_general():
         
         lbl_unidad = "Meses"
         lbl_unidad_sing = "Mes"
-        lbl_facturacion = "Facturación Global Mes"
+        lbl_facturacion = "Facturación del Mes"
         lbl_diferencia = "Diferencia vs Meta Mensual"
-        lbl_cumplimiento = "% Cumplimiento Global"
+        lbl_cumplimiento = "% Cumplimiento Mes"
         
-        lbl_rango_tit = "📊 RENDIMIENTO GLOBAL A LA FECHA"
-        lbl_cierre_tit = "🎯 PROYECCIÓN CIERRE AÑO HOLDING"
+        lbl_rango_tit = "📊 RENDIMIENTO DEL AÑO A LA FECHA"
+        lbl_cierre_tit = "🎯 PROYECCIÓN PARA CERRAR EL AÑO COMPLETO"
         lbl_txt_unidades = "Meses transcurridos con registros"
-        lbl_txt_total = "Total Facturado Holding (Año actual)"
-        lbl_txt_esperado = "Meta Global Acumulada Ideal"
-        lbl_txt_meta_global = "Meta Final Global del Holding"
-        lbl_txt_faltante = "Faltante Global para salvar el Año"
-        lbl_txt_restantes = "Meses restantes para trabajar"
-        lbl_req = "Cuota Global Mensual Requerida (Meses Restantes)"
-        lbl_caption_req = "Monto promedio mensual consolidado que debe facturar el Holding para cumplir."
-        lbl_txt_avance = "Avance Real Holding frente a Meta Anual"
+        lbl_txt_total = "Total Facturado en lo que va del Año"
+        lbl_txt_esperado = "Meta Ideal Acumulada que deberíamos llevar"
+        lbl_txt_meta_global = "Meta Final de todo el Año Completo"
+        lbl_txt_faltante = "Dinero que falta facturar para salvar el Año"
+        lbl_txt_restantes = "Meses que le quedan al año para trabajar"
+        lbl_req = "Cuota Mensual Requerida (Para los Meses Restantes)"
+        lbl_caption_req = "Monto promedio que cada mes restante del año debe registrar para cumplir el objetivo anual."
+        lbl_txt_avance = "Avance Real frente a la Meta de todo el Año"
 
     elif modo_periodo == "Por Mes":
         consumo_agrupado = df.groupby('fecha_cargo')['valor_cargo'].sum().reset_index()
@@ -250,21 +253,21 @@ def mostrar_informe_general():
             
         lbl_unidad = "Días"
         lbl_unidad_sing = "Día"
-        lbl_facturacion = "Facturación Global Día"
+        lbl_facturacion = "Facturación del Día"
         lbl_diferencia = "Diferencia vs Meta Diaria"
-        lbl_cumplimiento = "% Cumplimiento Global"
+        lbl_cumplimiento = "% Cumplimiento Día"
         
-        lbl_rango_tit = "📊 RENDIMIENTO GLOBAL DE DÍAS TRANSCURRIDOS"
-        lbl_cierre_tit = "🎯 PROYECCIÓN CIERRE DE MES HOLDING"
+        lbl_rango_tit = "📊 RENDIMIENTO DE LOS DÍAS TRANSCURRIDOS"
+        lbl_cierre_tit = "🎯 PROYECCIÓN PARA CERRAR EL MES COMPLETO"
         lbl_txt_unidades = "Días Evaluados con Registros"
-        lbl_txt_total = "Total Facturado Holding Hasta Hoy"
-        lbl_txt_esperado = "Meta Global Acumulada Ideal"
-        lbl_txt_meta_global = "Meta Global Fijada Para Este Mes"
-        lbl_txt_faltante = "Faltante Global para Alcanzar la Meta"
-        lbl_txt_restantes = "Días Disponibles en el Mes"
-        lbl_req = "Meta Global Diaria Promedio (Días Restantes)"
-        lbl_caption_req = "Mínimo diario consolidado que el Holding debe facturar."
-        lbl_txt_avance = "Avance Real Holding frente a Meta del Mes"
+        lbl_txt_total = "Total Facturado Hasta el Día de Hoy"
+        lbl_txt_esperado = "Meta Ideal Acumulada"
+        lbl_txt_meta_global = "Meta Final Fijada Para Este Mes Completo"
+        lbl_txt_faltante = "Dinero que Falta Facturar para Alcanzar la Meta del Mes"
+        lbl_txt_restantes = "Días Disponibles que le Quedan al Mes"
+        lbl_req = "Meta Diaria Promedio (Para los Días Restantes)"
+        lbl_caption_req = "Cada Día que le Queda al Calendario Debemos Facturar esto como Mínimo."
+        lbl_txt_avance = "Avance Real frente a la Meta de este Mes"
 
     else:
         consumo_agrupado = df.groupby('fecha_cargo')['valor_cargo'].sum().reset_index()
@@ -277,21 +280,21 @@ def mostrar_informe_general():
             
         lbl_unidad = "Días"
         lbl_unidad_sing = "Día"
-        lbl_facturacion = "Facturación Global Día"
+        lbl_facturacion = "Facturación del Día"
         lbl_diferencia = "Diferencia vs Meta Diaria"
-        lbl_cumplimiento = "% Cumplimiento Global"
+        lbl_cumplimiento = "% Cumplimiento Día"
         
-        lbl_rango_tit = "📊 RENDIMIENTO GLOBAL DEL PERÍODO"
-        lbl_cierre_tit = "🎯 BALANCE FINAL DEL HOLDING"
-        lbl_txt_unidades = "Días con registros en el rango"
-        lbl_txt_total = "Total Facturado Holding en el Rango"
-        lbl_txt_esperado = "Meta Global Proporcional esperada"
-        lbl_txt_meta_global = "Meta Global Objetivo del Rango"
-        lbl_txt_faltante = "Faltante Global del objetivo"
-        lbl_txt_restantes = "Días sin datos o futuros"
-        lbl_req = "Facturación Global Diaria Requerida"
-        lbl_caption_req = "Monto diario consolidado para completar la meta."
-        lbl_txt_avance = "Avance Holding frente a su propia Meta"
+        lbl_rango_tit = "📊 RENDIMIENTO DEL PERÍODO SELECCIONADO"
+        lbl_cierre_tit = "🎯 BALANCE FINAL DEL PERÍODO SELECCIONADO"
+        lbl_txt_unidades = "Días con registros dentro del rango"
+        lbl_txt_total = "Total Facturado en este Rango de Fechas"
+        lbl_txt_esperado = "Meta Proporcional esperada para los días con datos"
+        lbl_txt_meta_global = "Meta Total Objetivo asignada a todo el Rango Elegido"
+        lbl_txt_faltante = "Dinero que faltó/falta para cumplir el objetivo del Rango"
+        lbl_txt_restantes = "Días sin datos o futuros dentro del Rango"
+        lbl_req = "Facturación Diaria Requerida (Para completar el Rango)"
+        lbl_caption_req = "Monto diario necesario si el rango seleccionado incluye días futuros o por completar."
+        lbl_txt_avance = "Avance del Rango Evaluado frente a su propia Meta"
 
     total_facturado_rango = consumo_agrupado['valor_cargo'].sum()
     meta_proporcional_acumulada = meta_comparativa_fila * unidades_con_datos
@@ -302,10 +305,8 @@ def mostrar_informe_general():
     cuota_requerida_cierre = (monto_faltante_cierre / unidades_restantes) if unidades_restantes > 0 else 0
     porcentaje_avance_global = (total_facturado_rango / meta_global_total) if meta_global_total > 0 else 0
 
-    # ==========================================
-    # 4. TABLA DINÁMICA DE FACTURACIÓN CONSOLIDADA
-    # ==========================================
-    st.header(f"📋 TABLA DE FACTURACIÓN GLOBAL HOLDING ({lbl_unidad.upper()})")
+    # 4. TABLA DINÁMICA DE FACTURACIÓN
+    st.header(f"📋 TABLA DE FACTURACIÓN ({lbl_unidad.upper()})")
     st.markdown(f"**Meta Base Promedio por {lbl_unidad_sing} de acuerdo a la Meta Planteada:** {formato_cop(meta_comparativa_fila)}")
 
     tabla_base = pd.DataFrame()
@@ -343,11 +344,9 @@ def mostrar_informe_general():
         column_order=("Fecha", lbl_facturacion, lbl_diferencia, lbl_cumplimiento)
     )
 
-    # ==========================================
-    # 5. CUADRO DE CONTROL Y CIERRE DE METAS HOLDING
-    # ==========================================
+    # 5. CUADRO DE CONTROL Y CIERRE DE METAS 
     st.divider()
-    st.markdown("<h2 style='text-align: center; color: #2c3e50;'>CUADRO GLOBAL DE CONTROL Y CIERRE DE METAS</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #2c3e50;'>CUADRO DE CONTROL Y CIERRE DE METAS</h2>", unsafe_allow_html=True)
     st.write("") 
 
     c_izq, c_der = st.columns(2)
@@ -361,16 +360,16 @@ def mostrar_informe_general():
         st.markdown(f"<h3 style='color: #2980b9; margin-top: 0px;'>{formato_cop(total_facturado_rango)}</h3>", unsafe_allow_html=True)
         st.markdown(f"**{lbl_txt_esperado}:** {formato_cop(meta_proporcional_acumulada)}")
         color_cumplimiento = "#27ae60" if cumplimiento_rango >= 1 else "#c0392b"
-        st.markdown(f"**Eficiencia Global:** <span style='color:{color_cumplimiento}; font-weight:bold; font-size:18px;'>{formato_porcentaje(cumplimiento_rango)}</span>", unsafe_allow_html=True)
+        st.markdown(f"**Eficiencia / Cumplimiento:** <span style='color:{color_cumplimiento}; font-weight:bold; font-size:18px;'>{formato_porcentaje(cumplimiento_rango)}</span>", unsafe_allow_html=True)
         st.markdown("<hr style='margin: 15px 0px; border-top: 1px solid #e0e0e0;'>", unsafe_allow_html=True)
         
         diferencia_promedio = promedio_real_unidad - meta_comparativa_fila
         color_dif = "#27ae60" if diferencia_promedio >= 0 else "#c0392b"
         signo_dif = "+" if diferencia_promedio >= 0 else ""
-        texto_dif = "Superávit Global" if diferencia_promedio >= 0 else "Déficit Global"
+        texto_dif = "Superávit" if diferencia_promedio >= 0 else "Déficit"
         
-        st.markdown(f"**Promedio Consolidado Facturado por {lbl_unidad_sing}:** {formato_cop(promedio_real_unidad)}")
-        st.markdown(f"**Meta Base Global Esperada por {lbl_unidad_sing}:** {formato_cop(meta_comparativa_fila)}")
+        st.markdown(f"**Promedio Facturado por {lbl_unidad_sing}:** {formato_cop(promedio_real_unidad)}")
+        st.markdown(f"**Meta Base Esperada por {lbl_unidad_sing}:** {formato_cop(meta_comparativa_fila)}")
         
         st.markdown(
             f"<div style='background-color: #f8f9fa; padding: 10px; border-left: 4px solid {color_dif}; border-radius: 4px; margin-top: 8px;'>"
@@ -388,7 +387,7 @@ def mostrar_informe_general():
         if monto_faltante_cierre > 0:
             st.markdown(f"**{lbl_txt_faltante}:** <span style='color: #c0392b; font-weight: bold; font-size:16px;'>{formato_cop(monto_faltante_cierre)}</span>", unsafe_allow_html=True)
         else:
-            st.markdown(f"**Superávit (Meta Global Superada):** <span style='color: #27ae60; font-weight: bold; font-size:16px;'>+{formato_cop(abs(monto_faltante_cierre))}</span>", unsafe_allow_html=True)
+            st.markdown(f"**Superávit (Meta Superada):** <span style='color: #27ae60; font-weight: bold; font-size:16px;'>+{formato_cop(abs(monto_faltante_cierre))}</span>", unsafe_allow_html=True)
             
         st.markdown(f"**{lbl_txt_restantes}:** {unidades_restantes} {lbl_unidad.lower()}")
         st.markdown("<hr style='margin: 15px 0px; border-top: 1px solid #e0e0e0;'>", unsafe_allow_html=True)
@@ -396,49 +395,47 @@ def mostrar_informe_general():
         st.markdown(f"<p style='margin-bottom: 2px;'><b>{lbl_req}:</b></p>", unsafe_allow_html=True)
         
         if monto_faltante_cierre <= 0:
-            st.markdown(f"<h3 style='color: #27ae60; margin-top: 0px;'>¡Objetivo Global Logrado!</h3>", unsafe_allow_html=True)
-            st.caption("La meta total establecida para el Holding fue alcanzada o superada.")
+            st.markdown(f"<h3 style='color: #27ae60; margin-top: 0px;'>¡Objetivo Logrado!</h3>", unsafe_allow_html=True)
+            st.caption("La meta total establecida para este período fue alcanzada o superada con éxito.")
         elif unidades_restantes > 0:
             st.markdown(f"<h3 style='color: #d35400; margin-top: 0px;'>{formato_cop(cuota_requerida_cierre)}</h3>", unsafe_allow_html=True)
             st.caption(lbl_caption_req)
         else:
-            st.markdown(f"<h3 style='color: #c0392b; margin-top: 0px;'>Meta Global No Alcanzada</h3>", unsafe_allow_html=True)
-            st.caption("El tiempo finalizó y el Holding no logró cubrir el objetivo financiero global.")
+            st.markdown(f"<h3 style='color: #c0392b; margin-top: 0px;'>Meta No Alcanzada</h3>", unsafe_allow_html=True)
+            st.caption("El tiempo de este rango ya finalizó por completo y no se logró cubrir el objetivo financiero.")
             
         st.markdown("<hr style='margin: 10px 0px; border: none;'>", unsafe_allow_html=True)
         st.markdown(f"**{lbl_txt_avance}:** <span style='font-weight: bold; font-size:15px;'>{formato_porcentaje(porcentaje_avance_global)}</span> completado.", unsafe_allow_html=True)
 
-    # ==========================================
-    # 6. GRÁFICO DE RENDIMIENTO CONSOLIDADO
-    # ==========================================
+    # 6. GRÁFICO DE RENDIMIENTO
     st.divider()
-    st.header("📊 CONTROL GRÁFICO DE CONSUMO GLOBAL")
+    st.header("📊 CONTROL GRÁFICO DE CONSUMO")
 
     fig_comparativa = go.Figure()
     fig_comparativa.add_trace(go.Bar(
         x=consumo_agrupado['fecha_plot'], y=consumo_agrupado['valor_cargo'],
-        name='Facturado Global Real', marker_color='#1f77b4'
+        name='Facturado Real', marker_color='#1f77b4'
     ))
     fig_comparativa.add_trace(go.Scatter(
         x=consumo_agrupado['fecha_plot'], y=[meta_comparativa_fila] * len(consumo_agrupado),
-        name=f"Meta Global por {lbl_unidad_sing} ({formato_cop(meta_comparativa_fila)})",
+        name=f"Meta Base por {lbl_unidad_sing} ({formato_cop(meta_comparativa_fila)})",
         mode='lines', line=dict(color='#d62728', dash='dash', width=2),
     ))
     fig_comparativa.update_layout(
-        title=f'Rendimiento Holding vs Meta Global Asignada — {etiqueta_periodo}',
+        title=f'Rendimiento de Facturación vs Meta Asignada — {etiqueta_periodo}',
         xaxis_title=lbl_unidad, yaxis_title='COP ($)',
         hovermode='x unified', height=450
     )
     st.plotly_chart(fig_comparativa, use_container_width=True)
 
     # ==========================================
-    # 7. BOTÓN DE EXPORTACIÓN A PDF HOLDING
+    # BOTÓN DE EXPORTACIÓN A PDF
     # ==========================================
     st.divider()
     col_vacia1, col_boton, col_vacia2 = st.columns([1, 2, 1])
     
     with col_boton:
-        pdf_bytes = generar_pdf_fidedigno_holding(
+        pdf_bytes = generar_pdf_fidedigno(
             tabla_final, 
             fig_comparativa, 
             etiqueta_periodo, 
@@ -454,7 +451,7 @@ def mostrar_informe_general():
         )
         
         st.download_button(
-            label="📄 Exportar Informe Total del Holding a PDF",
+            label="📄 Exportar Informe a PDF",
             data=pdf_bytes,
             file_name=f"Informe_General_Consumo_{df['fecha_cargo'].min().strftime('%Y-%m-%d')}_al_{df['fecha_cargo'].max().strftime('%Y-%m-%d')}.pdf",
             mime="application/pdf",
