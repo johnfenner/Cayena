@@ -4,6 +4,7 @@ from .informe_general import mostrar_informe_general
 from .entidades import mostrar_entidades
 from .unidades_funcionales import mostrar_unidades_funcionales
 from .mercadeo import mostrar_mercadeo 
+from .resumen import mostrar_resumen
 
 def mostrar_vista():
     st.markdown("<h2 style='text-align: center; color: #1f6feb;'> VISIÓN TOTAL HOLDING EMPRESARIAL CAYENA AZUL</h2>", unsafe_allow_html=True)
@@ -20,14 +21,16 @@ def mostrar_vista():
     st.write("<br>", unsafe_allow_html=True)
     
     # Pestañas 
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "INFORME GENERAL", 
         "ENTIDADES", 
         "UNIDADES FUNCIONALES", 
-        "MERCADEO"
+        "MERCADEO",
+        "RESUMEN EJECUTIVO"
     ])
     
     with tab1: mostrar_informe_general()
     with tab2: mostrar_entidades()
     with tab3: mostrar_unidades_funcionales()
     with tab4: mostrar_mercadeo()
+    with tab5: mostrar_resumen()

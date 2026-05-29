@@ -6,35 +6,43 @@ import json
 import tempfile
 from datetime import date, timedelta
 
-# Archivo local para persistencia de la meta
-ARCHIVO_META = "config_meta.json"
-META_INICIAL_SISTEMA = 92000000000
-
 # ==========================================
 # 0. PERSISTENCIA DE CONFIGURACIÓN GLOBAL
 # ==========================================
 
-def obtener_meta_guardada():
-    """Lee la meta del archivo JSON. Si no existe, lo crea con el valor inicial."""
-    if not os.path.exists(ARCHIVO_META):
-        guardar_nueva_meta(META_INICIAL_SISTEMA)
-        return META_INICIAL_SISTEMA
+ARCHIVO_META = "config_meta.json"
+
+def obtener_meta_guardada(archivo=ARCHIVO_META):
+    """Lee la meta de un archivo JSON. Si no existe o hay error, devuelve 0."""
+    if not os.path.exists(archivo):
+        return 0
     
     try:
-        with open(ARCHIVO_META, 'r') as file:
+        with open(archivo, 'r') as file:
             datos = json.load(file)
-            return datos.get("meta_mensual", META_INICIAL_SISTEMA)
+            return datos.get("meta_mensual", 0)
     except Exception:
-        return META_INICIAL_SISTEMA
+        return 0
 
-def guardar_nueva_meta(nueva_meta):
+def guardar_nueva_meta(nueva_meta, archivo=ARCHIVO_META):
     """Sobreescribe el archivo JSON con el nuevo valor de la meta."""
     try:
-        with open(ARCHIVO_META, 'w') as file:
+        with open(archivo, 'w') as file:
             json.dump({"meta_mensual": nueva_meta}, file)
     except Exception as e:
-        st.error(f"Error al guardar la meta: {e}")
+        st.error(f"Error al guardar la meta en {archivo}: {e}")
 
+def obtener_meta_total_sedes():
+    """Calcula la suma dinámica de las metas de los JSON de cada sede."""
+    archivos_sedes = [
+        "config_meta_dorada.json",
+        "config_meta_magdalena.json",
+        "config_meta_putu.json",
+        "config_meta_traumanorte.json"
+    ]
+    
+    # Suma compacta de todas las lecturas
+    return sum(obtener_meta_guardada(archivo) for archivo in archivos_sedes)
 # ==========================================
 # 1. MOTOR DE EXTRACCIÓN MULTI-SEDE 
 # ==========================================
@@ -134,7 +142,7 @@ def generar_pdf_fidedigno_holding(tabla, fig, periodo, total_rango, meta_acumula
     COLOR_ROJO = (192, 57, 43)       
     COLOR_TEXTO = (50, 50, 50)       
     
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     pdf.set_font("Arial", "B", 16)
     pdf.set_text_color(*COLOR_TITULO)
@@ -144,7 +152,7 @@ def generar_pdf_fidedigno_holding(tabla, fig, periodo, total_rango, meta_acumula
     pdf.set_font("Arial", "", 11)
     pdf.set_text_color(*COLOR_TEXTO)
     pdf.cell(0, 6, f"SEDES EVALUADAS: LA-DORADA | PUTUMAYO | TRAUMANORTE | LA-MAGDALENA", ln=True, align="C")
-    pdf.cell(0, 6, f"Periodo de Analisis: {periodo_seguro} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Periodo de Analisis: {periodo_seguro} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(5)
     
     pdf.set_font("Arial", "B", 12)
@@ -290,7 +298,7 @@ def generar_pdf_entidades_holding(df_final, df_dashboard, etiqueta_periodo, tota
         pdf.image(ruta_logo, x=10, y=8, w=30)
         
     pdf.set_y(33)
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
 
     pdf.set_font("helvetica", style="B", size=16)
     pdf.cell(0, 10, "HOLDING EMPRESARIAL CAYENA AZUL", ln=True, align="C")
@@ -301,7 +309,7 @@ def generar_pdf_entidades_holding(df_final, df_dashboard, etiqueta_periodo, tota
     
     pdf.cell(0, 6, f"SEDES EVALUADAS: LA-DORADA | PUTUMAYO | TRAUMANORTE | LA-MAGDALENA", ln=True, align="C")
 
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(6)
     
     pdf.set_font("helvetica", style="B", size=11)
@@ -350,7 +358,7 @@ def generar_pdf_unidades_funcionales_holding(df_dashboard, etiqueta_periodo, tot
         pdf.image(ruta_logo, x=10, y=8, w=30)
         
     pdf.set_y(33)
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     pdf.set_font("helvetica", style="B", size=16)
     pdf.cell(0, 10, "HOLDING EMPRESARIAL CAYENA AZUL", ln=True, align="C")
@@ -361,7 +369,7 @@ def generar_pdf_unidades_funcionales_holding(df_dashboard, etiqueta_periodo, tot
 
     pdf.cell(0, 6, f"SEDES EVALUADAS: LA-DORADA | PUTUMAYO | TRAUMANORTE | LA-MAGDALENA ", ln=True, align="C")
 
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(6)
     
     pdf.set_font("helvetica", style="B", size=11)
@@ -414,7 +422,7 @@ def generar_pdf_mercadeo_holding(df_dashboard, etiqueta_periodo, total_general, 
         pdf.image(ruta_logo, x=10, y=8, w=30)
         
     pdf.set_y(33)
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     pdf.set_font("helvetica", style="B", size=16)
     pdf.cell(0, 10, "HOLDING EMPRESARIAL CAYENA AZUL", ln=True, align="C")
@@ -424,7 +432,7 @@ def generar_pdf_mercadeo_holding(df_dashboard, etiqueta_periodo, total_general, 
     pdf.cell(0, 6, f"SEDES EVALUADAS: LA-DORADA | PUTUMAYO | TRAUMANORTE | LA-MAGDALENA | TOLIMA-GRANDE", ln=True, align="C")
 
     
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(6)
     
     pdf.set_font("helvetica", style="B", size=11)

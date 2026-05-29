@@ -12,7 +12,8 @@ from .utils import (
     obtener_datos_holding, 
     generar_pdf_fidedigno_holding,
     obtener_meta_guardada,   
-    guardar_nueva_meta      
+    guardar_nueva_meta,
+    obtener_meta_total_sedes      
 )
 
 def mostrar_informe_general():
@@ -21,9 +22,13 @@ def mostrar_informe_general():
         unsafe_allow_html=True
     )
     
-    # 1. Cargar la última meta almacenada en el JSON local
-    meta_mensual_base_default = obtener_meta_guardada()
-    
+    # 1. Cargar la meta sumada directamente desde los JSON de las sedes
+    meta_mensual_base_default = obtener_meta_total_sedes()  
+
+    # Respaldo: si todos los JSON de las sedes están en 0 o no existen aún, toma la del config general
+    if meta_mensual_base_default == 0:
+        meta_mensual_base_default = obtener_meta_guardada()
+
     # ==========================================
     # 1. CONFIGURACIÓN DINÁMICA DE PERÍODOS Y METAS
     # ==========================================
@@ -41,7 +46,7 @@ def mostrar_informe_general():
             key="holding_general_radio"
         )
 
-        # --- Definimos las fechas de control de cohorte y máximos al inicio ---
+        # --- Definimos las fechas de control de corte y máximos al inicio ---
         hoy_fecha = date.today()
         ayer = hoy_fecha - timedelta(days=1)
         ano_actual = hoy_fecha.year
@@ -155,12 +160,12 @@ def mostrar_informe_general():
             meta_global_total = meta_comparativa_fila * dias_filtrados 
             dias_totales_periodo = dias_filtrados
 
-        # --- Inclusión del indicador de Cohorte ---
-        cohorte_str = ayer.strftime('%d-%m-%Y')
+        # --- Inclusión del indicador de corte ---
+        corte_str = ayer.strftime('%d-%m-%Y')
         if modo_periodo == "Por Año":
-            st.info(f"📅 **Análisis Holding:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {cohorte_str} ｜ 🎯 **Meta Global Mensual:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Global Anual:** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis Holding:** {etiqueta_periodo} ｜ 📌 **corte:** {corte_str} ｜ 🎯 **Meta Global Mensual:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Global Anual:** {formato_cop(meta_global_total)}")
         else:
-            st.info(f"📅 **Análisis Holding:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {cohorte_str} ｜ 🎯 **Meta Global Calculada:** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis Holding:** {etiqueta_periodo} ｜ 📌 **corte:** {corte_str} ｜ 🎯 **Meta Global Calculada:** {formato_cop(meta_global_total)}")
 
     # ==========================================
     # 2. EXTRACCIÓN MULTI-SEDE Y CARGA DE DATOS
