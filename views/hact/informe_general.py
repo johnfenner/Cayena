@@ -150,9 +150,9 @@ def mostrar_informe_general():
             dias_totales_periodo = dias_filtrados
 
         if modo_periodo == "Por Año":
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **corte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
         else:
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} ｜ 📌 **corte:** {ayer.strftime('%d-%m-%Y')} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
 
     # 2. CONEXIÓN Y CARGA DE DATOS
     try:
