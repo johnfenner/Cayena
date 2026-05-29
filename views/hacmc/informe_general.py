@@ -39,7 +39,7 @@ def mostrar_informe_general():
             key="dorada_general_radio"
         )
 
-        # Variables base de fecha unificadas para el control de cohorte y límites
+        # Variables base de fecha unificadas para el control de corte y límites
         hoy_fecha = date.today()
         ayer = hoy_fecha - timedelta(days=1)
         ano_actual = hoy_fecha.year
@@ -156,13 +156,13 @@ def mostrar_informe_general():
             meta_global_total = meta_comparativa_fila * dias_filtrados 
             dias_totales_periodo = dias_filtrados
 
-        # Formateo e inclusión visual de la cohorte igual que en Entidades
-        texto_cohorte = f"｜ 📌 **Cohorte:** {ayer.strftime('%d-%m-%Y')}"
+        # Formateo e inclusión visual de la corte igual que en Entidades
+        texto_corte = f"｜ 📌 **corte:** {ayer.strftime('%d-%m-%Y')}"
 
         if modo_periodo == "Por Año":
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} {texto_cohorte} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} {texto_corte} ｜ 🎯 **Meta Mensual Unitario:** {formato_cop(meta_mensual_base)} ｜ 🚀 **Meta Anual Total (Suma):** {formato_cop(meta_global_total)}")
         else:
-            st.info(f"📅 **Análisis:** {etiqueta_periodo} {texto_cohorte} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
+            st.info(f"📅 **Análisis:** {etiqueta_periodo} {texto_corte} ｜ 🎯 **Meta Global en Base a la Meta Mensual de Referencia:** {formato_cop(meta_global_total)}")
 
     # ==========================================
     # 2. CONEXIÓN Y CARGA DE DATOS

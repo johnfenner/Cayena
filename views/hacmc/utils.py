@@ -59,7 +59,7 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     COLOR_TEXTO = (50, 50, 50)       
     COLOR_GRIS = (189, 195, 199)     
     
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     # --- 1. ENCABEZADO ---
     pdf.set_font("Arial", "B", 16)
@@ -69,7 +69,7 @@ def generar_pdf_fidedigno(tabla, fig, periodo, total_rango, meta_acumulada, cump
     
     pdf.set_font("Arial", "", 11)
     pdf.set_text_color(*COLOR_TEXTO)
-    pdf.cell(0, 6, f"Periodo de Analisis: {periodo_seguro} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Periodo de Analisis: {periodo_seguro} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(5)
     
     # --- 2. CUADRO DE CONTROL ---
@@ -219,8 +219,8 @@ def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_genera
     # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
     pdf.set_y(23)
     
-    # 1. Calculo de la fecha de cohorte
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    # 1. Calculo de la fecha de corte
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
 
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
@@ -229,7 +229,7 @@ def generar_pdf_entidades(df_final, df_dashboard, etiqueta_periodo, total_genera
     pdf.set_font("helvetica", style="I", size=10)
     
     etiqueta_segura = etiqueta_periodo.replace("→", " al ")
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen
@@ -286,8 +286,8 @@ def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_gener
     # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
     pdf.set_y(23)
 
-    # 1. Calculo de la fecha de cohorte
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    # 1. Calculo de la fecha de corte
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
@@ -296,7 +296,7 @@ def generar_pdf_unidades_funcionales(df_dashboard, etiqueta_periodo, total_gener
     pdf.set_font("helvetica", style="I", size=10)
     
     etiqueta_segura = etiqueta_periodo.replace("→", " al ")
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_segura} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen Operativo
@@ -358,15 +358,15 @@ def generar_pdf_mercadeo(df_dashboard, etiqueta_periodo, total_general, total_ca
     # Bajamos el cursor Y para que los títulos inicien limpios debajo del logo
     pdf.set_y(23)
 
-    # 1. Calculo de la fecha de cohorte
-    fecha_cohorte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
+    # 1. Calculo de la fecha de corte
+    fecha_corte = (date.today() - timedelta(days=1)).strftime('%d-%m-%Y')
     
     # Configuración de página y título principal
     pdf.set_font("helvetica", style="B", size=16)
     pdf.cell(0, 10, "HOSPITAL DE ALTA COMPLEJIDAD DEL MAGDALENA CENTRO", ln=True, align="C")
     pdf.cell(0, 10, "REPORTE DE FACTURACIÓN POR LÍNEA DE MERCADEO", ln=True, align="C")
     pdf.set_font("helvetica", style="I", size=10)
-    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  Cohorte: {fecha_cohorte}", ln=True, align="C")
+    pdf.cell(0, 6, f"Período de Análisis: {etiqueta_periodo} |  corte: {fecha_corte}", ln=True, align="C")
     pdf.ln(6)
     
     # Sección 1: Bloques de Resumen Operativo
